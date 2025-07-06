@@ -24,7 +24,11 @@ def lambda_handler(event, context):
         }
 
 def create_todo(event):
-    body = json.loads(event.get('body', '{}'))
+    print("EVENT BODY:", event.get('body'))  # デバッグ
+    body_str = event.get('body', '{}')
+    body = json.loads(body_str)
+    print("PARSED BODY:", body)  # デバッグ
+
     todo_id = str(uuid.uuid4())
     item = {
         'id': todo_id,
@@ -32,18 +36,21 @@ def create_todo(event):
         'description': body.get('description', ''),
         'created_at': datetime.utcnow().isoformat()
     }
+    print("PUT ITEM:", item)  # デバッグ
+
     table.put_item(Item=item)
     return {
         'statusCode': 200,
-        'body': json.dumps({'message': 'ToDo created', 'item': item})
+        'body': json.dumps({'message': 'ToDo created', 'item': item}, ensure_ascii=False)
     }
+
 
 def list_todos():
     response = table.scan()
     items = response.get('Items', [])
     return {
         'statusCode': 200,
-        'body': json.dumps(items)
+        'body': json.dumps(items, ensure_ascii=False)
     }
 
 def delete_todo(event):
@@ -51,10 +58,10 @@ def delete_todo(event):
     if not todo_id:
         return {
             'statusCode': 400,
-            'body': json.dumps({'message': 'Missing ID'})
+            'body': json.dumps({'message': 'Missing ID'}, ensure_ascii=False)
         }
     table.delete_item(Key={'id': todo_id})
     return {
         'statusCode': 200,
-        'body': json.dumps({'message': 'ToDo deleted', 'id': todo_id})
+        'body': json.dumps({'message': 'ToDo deleted', 'id': todo_id}, ensure_ascii=False)
     }
